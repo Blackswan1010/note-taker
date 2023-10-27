@@ -1,4 +1,4 @@
-// Import express module to our server
+// Import express, fs, path, and uuid modules to our server
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
@@ -10,8 +10,8 @@ const db = require('./db/db.json');
 const app = express();
 
 const PORT = process.env.PORT || 3001;
-// Create middleware
-// app.use(*middleware*){// -json, urlencoded, staticify(public)}
+
+// Create app.use(*middleware*){// -json, urlencoded, staticify(public)}
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
@@ -29,6 +29,7 @@ app.get('/notes', (req, res) => {
 
 // GET request to fetch our api to send notes from db.json
 app.get('/api/notes', (req, res) => {
+    // Reading the data with the directed filepath, then parsing through the data
     fs.readFile('./db/db.json', 'utf-8', (err, data) => {
         if (err) {
             console.error(err);
@@ -72,7 +73,7 @@ app.post('/api/notes', (req, res) => {
         })
 
         const response = {
-            status: 'success',
+            status: 'Success',
             body: newNote
         }
 
@@ -85,13 +86,17 @@ app.post('/api/notes', (req, res) => {
 
 
 // DELETE request to delete specific note and specific data from db.json and push with fs.writeFile
-app.delete('/api/notes/:id', (req, res) => {
+app.delete('/api/notes/:id', (req, res) => {    
 
+    // Create a for loop iterating thru the database 
     for (let i = 0; i < db.length; i++) {
         let note = db[i];
 
+        // Checking for the same id and removing the object from database
         if (note.id == req.params.id) {
             db.splice(i, 1);
+
+            // Writing the stringify database to the filepath
             fs.writeFileSync(path.join(__dirname, './db/db.json'), JSON.stringify(db, null, 2));
 
             break;
