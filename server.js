@@ -28,35 +28,54 @@ app.get('/notes', (req, res) => {
 
 // get request to fetch our api to send notes from db.json, route: '/api/notes'
 app.get('/api/notes', (req, res) => {
-    res.json(db);
+    fs.readFile('./db/db.json', 'utf-8', (err, data) => {
+        if(err){
+            console.error(err);
+        } else {
+            const parsedData = JSON.parse(data);
+            res.status(200).json(parsedData);
+        }
+    })
+    
 });
 
 // post request to fetch our api to modify with parsed req.body data and push post to db.json with fs.writeFile, route: '/api/notes', return res.json;
 app.post('/api/notes', (req, res) => {
-    res.json(`${req.method} request received`);
 
-    const {title, text, id} = req.body;
+    const {title, text} = req.body;
 
     if(title && text){
         const newNote = {
             title,
             text,
-            id: uuidv4()
+            note_id: uuidv4(),
           };
+
+          fs.readFile('./db/db.json', 'utf8', (err, data) => {
+            if(err){
+                console.error(err);
+            } else {
+                const parsedData = JSON.parse(data);
+
+                parsedData.push(newNote);
+
+                db.push(newNote);
+
+                fs.writeFile('./db/db.json', JSON.stringify(parsedData, null, 4),
+                 (writeErr) => writeErr ? console.error(writeErr) : console.info('Successfully updated note!'));
+            }
+          })
     
         const response = {
             status: 'success',
             body: newNote
         }
-        
+
         console.log(response);
         res.status(201).json(response);
     } else {
         res.status(500).json('Error in posting new note');
     }
-
-    fs.writeFileSync(db, JSON.stringify(newNote));
-    res.json(db);
 });
 
 // delete request to delete specific note, *EXTRA CRED* remove specific data from db.json and push with fs.writeFile,  route: '/api/notes/:notes_id', return res.json;
